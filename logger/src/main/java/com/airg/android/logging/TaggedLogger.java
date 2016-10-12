@@ -29,9 +29,9 @@ import static com.airg.android.logging.Logger.warn;
 
 /**
  Allows you to attach a tag to a log instance so that you can set the tag once and forget about it.
-*/
+ */
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings ( {"WeakerAccess", "unused"})
 public class TaggedLogger {
     @Getter private final String tag;
 
@@ -114,8 +114,11 @@ public class TaggedLogger {
 
     /**
      Log a formatted error message
-     @param fmt message format
-     @param args message format arguments
+
+     @param fmt
+     message format
+     @param args
+     message format arguments
      */
     public void e (final String fmt, final Object... args) {
         error (tag, expand (fmt, args));
@@ -123,7 +126,9 @@ public class TaggedLogger {
 
     /**
      Log an error message
-     @param str message to log
+
+     @param str
+     message to log
      */
     public void e (final String str) {
         error (tag, str);
@@ -133,8 +138,11 @@ public class TaggedLogger {
 
     /**
      Log a formatted warning message
-     @param fmt message format
-     @param args message format arguments
+
+     @param fmt
+     message format
+     @param args
+     message format arguments
      */
     public void w (final String fmt, final Object... args) {
         warn (tag, expand (fmt, args));
@@ -142,7 +150,9 @@ public class TaggedLogger {
 
     /**
      Log a warning message
-     @param str message to log
+
+     @param str
+     message to log
      */
     public void w (final String str) {
         warn (tag, str);
@@ -152,8 +162,11 @@ public class TaggedLogger {
 
     /**
      Log a formatted information message
-     @param fmt message format
-     @param args message format arguments
+
+     @param fmt
+     message format
+     @param args
+     message format arguments
      */
     public void i (final String fmt, final Object... args) {
         Logger.info (tag, expand (fmt, args));
@@ -161,7 +174,9 @@ public class TaggedLogger {
 
     /**
      Log an information message
-     @param str message to log
+
+     @param str
+     message to log
      */
     public void i (final String str) {
         Logger.info (tag, str);
@@ -171,8 +186,11 @@ public class TaggedLogger {
 
     /**
      Log a formatted debug message
-     @param fmt message format
-     @param args message format arguments
+
+     @param fmt
+     message format
+     @param args
+     message format arguments
      */
     public void d (final String fmt, final Object... args) {
         debug (tag, expand (fmt, args));
@@ -180,7 +198,9 @@ public class TaggedLogger {
 
     /**
      Log a debug message
-     @param str message to log
+
+     @param str
+     message to log
      */
     public void d (final String str) {
         debug (tag, str);
@@ -190,8 +210,11 @@ public class TaggedLogger {
 
     /**
      Log a formatted verbose message
-     @param fmt message format
-     @param args message format arguments
+
+     @param fmt
+     message format
+     @param args
+     message format arguments
      */
     public void v (final String fmt, final Object... args) {
         Logger.verbose (tag, expand (fmt, args));
@@ -199,7 +222,9 @@ public class TaggedLogger {
 
     /**
      Log a verbose message
-     @param str message to log
+
+     @param str
+     message to log
      */
     public void v (final String str) {
         Logger.verbose (tag, str);

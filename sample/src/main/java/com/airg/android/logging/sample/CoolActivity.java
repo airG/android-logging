@@ -29,66 +29,69 @@ import com.airg.android.logging.TaggedLogger;
 import java.lang.ref.WeakReference;
 
 /**
- * Created by Mahram Z. Foadi on 2016-09-21.
- * @author Mahram Z. Foadi
- */
+ Created by Mahram Z. Foadi on 2016-09-21.
 
-public class CoolActivity extends Activity implements View.OnClickListener {
-    private final TaggedLogger LOG = Logger.tag("COOLACTIVITY");
+ @author Mahram Z. Foadi */
+
+public class CoolActivity
+  extends Activity
+  implements View.OnClickListener {
+    private final TaggedLogger LOG = Logger.tag ("COOLACTIVITY");
     private Button button;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_cool);
+    protected void onCreate (Bundle savedInstanceState) {
+        super.onCreate (savedInstanceState);
+        setContentView (R.layout.activity_cool);
 
-        button = (Button) findViewById(android.R.id.button1);
-        button.setOnClickListener(this);
+        button = (Button) findViewById (android.R.id.button1);
+        button.setOnClickListener (this);
     }
 
     private void onTaskFinished () {
-        LOG.d("Task finished");
-        button.setEnabled(true);
+        LOG.d ("Task finished");
+        button.setEnabled (true);
     }
 
     @Override
-    public void onClick(View v) {
-        button.setEnabled(false);
-        LOG.d("Starting up a new intercooler instance.");
-        new Thread(new InterCooler(this, 10000)).start();
+    public void onClick (View v) {
+        button.setEnabled (false);
+        LOG.d ("Starting up a new intercooler instance.");
+        new Thread (new InterCooler (this, 10000)).start ();
     }
 
-    private static class InterCooler implements Runnable {
-        private final long delay;
+    private static class InterCooler
+      implements Runnable {
+        private final long                        delay;
         private final WeakReference<CoolActivity> hostActivity;
 
-        private InterCooler(final CoolActivity host, final long d) {
+        private InterCooler (final CoolActivity host, final long d) {
             delay = d;
-            hostActivity = new WeakReference<>(host);
+            hostActivity = new WeakReference<> (host);
         }
 
         @Override
-        public void run() {
-            Logger.i("INTERCOOLER", "Napping for %dms", delay);
+        public void run () {
+            Logger.i ("INTERCOOLER", "Napping for %dms", delay);
             try {
-                Thread.sleep(delay);
-                Logger.i("INTERCOOLER", "Slept for %dms", delay);
+                Thread.sleep (delay);
+                Logger.i ("INTERCOOLER", "Slept for %dms", delay);
             } catch (InterruptedException e) {
-                e.printStackTrace();
-                Logger.i("INTERCOOLER", "How dare you interrupt %s?", getClass().getSimpleName());
+                e.printStackTrace ();
+                Logger.i ("INTERCOOLER", "How dare you interrupt %s?", getClass ().getSimpleName ());
             }
 
-            final CoolActivity activity = hostActivity.get();
+            final CoolActivity activity = hostActivity.get ();
             if (null == activity) {
-                Logger.w("INTERCOOLER", "Activity is gone. Not notifying.");
+                Logger.w ("INTERCOOLER", "Activity is gone. Not notifying.");
                 return;
             }
 
-            Logger.w("INTERCOOLER", "Notifying Activity.");
-            activity.runOnUiThread(new Runnable() {
+            Logger.w ("INTERCOOLER", "Notifying Activity.");
+            activity.runOnUiThread (new Runnable () {
                 @Override
-                public void run() {
-                    activity.onTaskFinished();
+                public void run () {
+                    activity.onTaskFinished ();
                 }
             });
         }

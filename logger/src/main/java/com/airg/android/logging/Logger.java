@@ -19,8 +19,8 @@
 package com.airg.android.logging;
 
 import android.text.TextUtils;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import android.util.Log;
+
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -29,16 +29,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import static android.util.Log.DEBUG;
-import static android.util.Log.VERBOSE;
-import static android.util.Log.INFO;
-import static android.util.Log.WARN;
 import static android.util.Log.ERROR;
+import static android.util.Log.INFO;
+import static android.util.Log.VERBOSE;
+import static android.util.Log.WARN;
 
 /**
  Logging utility class that allows for formatted logging.
  */
 
-@SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
+@SuppressWarnings ( {"UnusedDeclaration", "WeakerAccess"})
 // static class ... we don't want instances
 @NoArgsConstructor (access = AccessLevel.PRIVATE)
 public final class Logger {
@@ -55,7 +55,7 @@ public final class Logger {
      @return a TaggedLog instance of the logger
      */
     public static TaggedLogger tag (final String tag) {
-        return new TaggedLogger(tag);
+        return new TaggedLogger (tag);
     }
 
     // ********** Exception Logging **********//
@@ -142,6 +142,7 @@ public final class Logger {
     }
 
     // ********** Errors Logging **********//
+
     /**
      Log a formatted error message
 
@@ -231,6 +232,7 @@ public final class Logger {
     }
 
     // ********** Debug Logging **********//
+
     /**
      Log a formatted debug message
 
@@ -260,6 +262,7 @@ public final class Logger {
     }
 
     // ********** Verbose Logging **********//
+
     /**
      Log a formatted verbose message
 
@@ -323,22 +326,7 @@ public final class Logger {
      @return formatted message and stack trace
      */
     public static String format (final Throwable t, final String msg) {
-        StringWriter sw = new StringWriter ();
-        PrintWriter pw = new PrintWriter (sw);
-
-        if (null == t) {
-            if (!TextUtils.isEmpty (msg)) {
-                sw.write (msg);
-                sw.write ("\n");
-            }
-        } else {
-            sw.write (TextUtils.isEmpty (msg) ? t.getMessage () : msg);
-            sw.write ("\n");
-            t.printStackTrace (pw);
-        }
-
-        pw.flush ();
-        return sw.toString ();
+        return msg + '\n' + Log.getStackTraceString (t);
     }
 
     // ********** Privates, Helpers, and Utility methods **********//
