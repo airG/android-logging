@@ -39,7 +39,7 @@ import static android.util.Log.ERROR;
  */
 
 @SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
-// we don't want instances
+// static class ... we don't want instances
 @NoArgsConstructor (access = AccessLevel.PRIVATE)
 public final class Logger {
     private static final String TAG = "LOG";
@@ -142,7 +142,6 @@ public final class Logger {
     }
 
     // ********** Errors Logging **********//
-
     /**
      Log a formatted error message
 
@@ -232,7 +231,6 @@ public final class Logger {
     }
 
     // ********** Debug Logging **********//
-
     /**
      Log a formatted debug message
 
@@ -262,7 +260,6 @@ public final class Logger {
     }
 
     // ********** Verbose Logging **********//
-
     /**
      Log a formatted verbose message
 

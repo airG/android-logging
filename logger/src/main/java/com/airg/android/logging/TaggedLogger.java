@@ -18,9 +18,7 @@
 
 package com.airg.android.logging;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import static com.airg.android.logging.Logger.debug;
 import static com.airg.android.logging.Logger.error;
@@ -34,9 +32,12 @@ import static com.airg.android.logging.Logger.warn;
 */
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-@RequiredArgsConstructor (access = AccessLevel.PACKAGE)
 public class TaggedLogger {
     @Getter private final String tag;
+
+    TaggedLogger (final String logtag) {
+        tag = logtag;
+    }
 
     // ********** Exception Logging **********//
 
