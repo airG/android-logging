@@ -21,6 +21,7 @@ Aside from the static methods, there is also a tagged logger which allows you to
 
 ##Contributions
 Contributions are appreciated and welcome. In order to contribute to this repo please follow these steps:
+
 1. Fork the repo
 1. Add this repo as the `upstream` repo in your fork (`git remote add upstream git@github.com:airG/android-logging.git`)
 1. Contribute (Be sure to format your code according to th included code style settings)
