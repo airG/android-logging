@@ -1,3 +1,5 @@
+ [ ![Download](https://api.bintray.com/packages/airg/airGOss/logger/images/download.svg) ](https://bintray.com/airg/airGOss/logger/_latestVersion)
+
 #Android Logging
 The airG android logging library is a group of utilities for easier logging. airG android logger uses `android.util.log` methods to log so there's no special sauce and the same log granularity (`e`, `w`, `d`, `i`, `v`, etc.) is provided.
 
