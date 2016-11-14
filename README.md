@@ -12,7 +12,7 @@ Formatted messages (see [String Formatter](https://docs.oracle.com/javase/7/docs
 Aside from the static methods, there is also a tagged logger which allows you to focus only on the log message itself and not the tag (the little things matter).
 ### Example
     public class ContactsActivity extends Activity {
-        private final TaggedLogger LOG = Log.tag("CONTACTS");
+        private final TaggedLogger LOG = Logger.tag("CONTACTS");
         ...
         private void doSomething () {
            LOG.d("Look, Ma! No Hands!");
