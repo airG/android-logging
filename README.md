@@ -4,6 +4,8 @@
 # Android Logging
 The airG android logging library is a group of utilities for easier logging. airG android logger uses `android.util.log` methods to log so there's no special sauce and the same log granularity (`e`, `w`, `d`, `i`, `v`, etc.) is provided.
 
+For a more complete reference, check out the [Javadocs](https://airg.github.io/android-logging/javadoc/).
+
 ## Formatted Logging
 Formatted messages (see [String Formatter](https://developer.android.com/reference/java/util/Formatter.html) documentation for reference) are easier to work with than concatenating bits and pieces of info.
 ### Example
