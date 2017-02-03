@@ -28,7 +28,7 @@ To use the _android-logging_ library in your builds, add the following line to y
 
 `compile 'com.airg.android:logger:+@aar'`
 
-Or download the library: [![Download](https://api.bintray.com/packages/airgoss/airGOss/logger/images/download.svg) ](https://bintray.com/airgoss/airGOss/logger/_latestVersion)
+Or download the library from the download link at the top of this page.
 
 ## Contributions
 Please refer to the [contribution instructions](https://airg.github.io/#contribute).
