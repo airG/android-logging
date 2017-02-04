@@ -1,0 +1,43 @@
+language: android
+sudo: required
+
+branches:
+  only:
+    - travis
+
+git:
+  depth: 3
+
+android:
+  components:
+    - platform-tools
+    - tools
+    - build-tools-25.0.1
+    - android-10
+    - android-17
+    - android-24
+    - android-25
+    - extra-google-google_play_services
+    - extra-google-m2repository
+    - extra-android-m2repository
+    - sys-img-armeabi-v7a-android-10
+    - sys-img-armeabi-v7a-android-17
+    - sys-img-armeabi-v7a-android-24
+
+env:
+  - ANDROID_TARGET=android-10 ANDROID_ABI=default/armeabi
+  - ANDROID_TARGET=android-17 ANDROID_ABI=default/armeabi-v7a
+  - ANDROID_TARGET=android-24 ANDROID_ABI=default/armeabi-v7a
+
+before_install:
+  - echo no | android create avd --force -n async -t $ANDROID_TARGET --abi $ANDROID_ABI
+  - emulator -avd async -no-skin -no-audio -no-window &
+
+before_script:
+  - echo "Waiting for emulator"
+  - adb wait-for-device
+  - echo "Emulator available"
+  - adb shell input keyevent 82 &
+
+script:
+  ./gradlew connectedCheck
