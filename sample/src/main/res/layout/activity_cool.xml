@@ -9,4 +9,48 @@
         android:text="@string/start_task"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/logcat"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_height="0dp"
+        style="@style/logcat.current"/>
+
+    <TextView
+        android:id="@+id/line_counter"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textColor="#f00"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/global_capture"
+            android:text="@string/global"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/local_capture"
+            android:text="@string/local"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="5dp"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/clear_log"
+        android:text="@string/clear_log"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 </LinearLayout>
