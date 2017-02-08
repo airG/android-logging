@@ -25,7 +25,16 @@ Aside from the static methods, there is also a tagged logger which allows you to
         ...
     }
 
-## Usage
+## LogCatcher
+The LogCatcher class is an experimental bit that can be used to collect logs from the device. It's a great tool for error reporting. Bits and pieces of this code have been previously used for diagnostic error reporting so while this class is new, the idea is sound and works. The `LogCatcher` class supports two methods of execution:
+
+### Dump
+The dump mode is equivalent of running `logcat -d`. It runs logcat and prints out everything currently in the log and quits.
+
+### Capture
+The capture mode is for ongoing collection of log entries. You start the capture as well as end it.
+
+# Usage
 To use the _android-logging_ library in your builds, add the following line to your Gradle build script:
 
 `compile 'com.airg.android:logger:+@aar'`

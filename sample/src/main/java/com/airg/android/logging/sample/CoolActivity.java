@@ -30,6 +30,7 @@ import com.airg.android.logging.Logger;
 import com.airg.android.logging.TaggedLogger;
 
 import java.lang.ref.WeakReference;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -43,6 +44,7 @@ import butterknife.OnClick;
 
 public class CoolActivity
         extends Activity {
+    public static final long MAX_DELAY = 6000;
     private final TaggedLogger LOG = Logger.tag("COOLACTIVITY");
 
     @BindView(android.R.id.button1)
@@ -57,6 +59,8 @@ public class CoolActivity
     CheckBox clear;
     @BindView(R.id.line_counter)
     TextView lineCounter;
+
+    private final Random rnd = new Random(System.currentTimeMillis());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +78,7 @@ public class CoolActivity
     public void onClick() {
         button.setEnabled(false);
         LOG.d("Starting up a new intercooler instance.");
-        new Thread(new InterCooler(this, 10000)).start();
+        new Thread(new InterCooler(this, (long) (rnd.nextFloat() * MAX_DELAY))).start();
     }
 
     @OnClick(R.id.local_capture)
@@ -82,7 +86,7 @@ public class CoolActivity
         disableLogCapButtons();
         logcat.setText(null);
 
-        new LogCatcher(clear.isChecked(), true).getLogLines(new LogcatListener());
+        new LogCatcher(clear.isChecked(), true).dump(new LogcatListener());
     }
 
     @OnClick(R.id.global_capture)
@@ -90,7 +94,7 @@ public class CoolActivity
         disableLogCapButtons();
         logcat.setText(null);
 
-        new LogCatcher(clear.isChecked(), false).getLogLines(new LogcatListener());
+        new LogCatcher(clear.isChecked(), false).dump(new LogcatListener());
     }
 
     private void enableLogCapButtons() {
@@ -116,6 +120,11 @@ public class CoolActivity
                     appendLog(logLine);
                 }
             });
+        }
+
+        @Override
+        public void onStart() {
+            // we really don't care.
         }
 
         private void appendLog(String logLine) {
@@ -146,17 +155,19 @@ public class CoolActivity
 
     private static class InterCooler
             implements Runnable {
+        private static final String TAG = "INTERCOOLER";
         private final long delay;
         private final WeakReference<CoolActivity> hostActivity;
 
         private InterCooler(final CoolActivity host, final long d) {
             delay = d;
             hostActivity = new WeakReference<>(host);
+            Logger.d(TAG, "New task instantiated by %s with a delay of %dms", host.getClass().getSimpleName(), delay);
         }
 
         @Override
         public void run() {
-            Logger.i("INTERCOOLER", "Napping for %dms", delay);
+            Logger.i(TAG, "Napping for %dms", delay);
             try {
                 Thread.sleep(delay);
                 Logger.i("INTERCOOLER", "Slept for %dms", delay);
