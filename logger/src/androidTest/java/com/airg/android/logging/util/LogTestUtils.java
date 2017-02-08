@@ -16,13 +16,32 @@
  * ***************************************************************************
  */
 
-package com.airg.android.logging;
+package com.airg.android.logging.util;
 
-import static org.junit.Assert.*;
+import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static android.util.Log.DEBUG;
+import static android.util.Log.ERROR;
+import static android.util.Log.INFO;
+import static android.util.Log.VERBOSE;
+import static android.util.Log.WARN;
 
 /**
  * Created by mahramf.
  */
-public class LoggerTest {
 
+public final class LogTestUtils {
+    private LogTestUtils() {
+    } // no instances
+
+
+
+    public static boolean containsLogLineThatContains(final Collection<String> lines, final String target) {
+        for (final String line : lines)
+            if (line.contains(target)) return true;
+
+        return false;
+    }
 }

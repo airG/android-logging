@@ -18,8 +18,6 @@
 
 package com.airg.android.logging;
 
-import lombok.Getter;
-
 import static com.airg.android.logging.Logger.debug;
 import static com.airg.android.logging.Logger.error;
 import static com.airg.android.logging.Logger.expand;
@@ -28,12 +26,12 @@ import static com.airg.android.logging.Logger.logThrowable;
 import static com.airg.android.logging.Logger.warn;
 
 /**
- Allows you to attach a tag to a log instance so that you can set the tag once and forget about it.
+ Allows you to tag a logger once and log without having to tag every entry.
  */
 
 @SuppressWarnings ( {"WeakerAccess", "unused"})
 public class TaggedLogger {
-    @Getter private final String tag;
+    private final String tag;
 
     TaggedLogger (final String logtag) {
         tag = logtag;
@@ -228,5 +226,13 @@ public class TaggedLogger {
      */
     public void v (final String str) {
         Logger.verbose (tag, str);
+    }
+
+    /**
+     * This logger's tag
+     * @return the tag
+     */
+    public String tag() {
+        return tag;
     }
 }

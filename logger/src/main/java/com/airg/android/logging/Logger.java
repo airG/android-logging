@@ -24,8 +24,6 @@ import android.util.Log;
 import java.util.Arrays;
 import java.util.Locale;
 
-import lombok.Setter;
-
 import static android.util.Log.DEBUG;
 import static android.util.Log.ERROR;
 import static android.util.Log.INFO;
@@ -33,7 +31,7 @@ import static android.util.Log.VERBOSE;
 import static android.util.Log.WARN;
 
 /**
- * Logging utility class that allows for formatted logging.
+ * Logging utility class that allows for formatted logging (See {@link java.util.Formatter}).
  */
 
 @SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
@@ -41,11 +39,60 @@ import static android.util.Log.WARN;
 public final class Logger {
     private static final String TAG = "LOG";
 
-    @Setter
-    private static int rootLevel;
+    // log every thing
+    static int rootLevel = VERBOSE;
+
+    // format as english by default
+    static Locale defaultLocale = Locale.ENGLISH;
 
     private Logger() {
         // no instance
+    }
+
+    /**
+     * Set the root log level. All lower level logs entries will be dropped
+     *
+     * @param level minimum log level
+     */
+    public static void setRootLevel(final int level) {
+        switch (level) {
+            case VERBOSE:
+            case ERROR:
+            case WARN:
+            case INFO:
+            case DEBUG:
+                rootLevel = level;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid log level: " + level);
+        }
+    }
+
+    /**
+     * Get the current log level
+     *
+     * @return log level
+     */
+    public static int getRootLevel() {
+        return rootLevel;
+    }
+
+    /**
+     * Specify an alternate locale to use for formatting output via {@link String#format(Locale, String, Object...)}. The default locale is {@link Locale#ENGLISH}.
+     *
+     * @param locale override locale.
+     */
+    public static void setFormatLocale(final Locale locale) {
+        defaultLocale = locale;
+    }
+
+    /**
+     * Get the current formatting locale
+     *
+     * @return Current formatting locale
+     */
+    public static Locale getFormatLocale() {
+        return defaultLocale;
     }
 
     /**
@@ -260,14 +307,15 @@ public final class Logger {
      */
     static String expand(final String fmt, final Object... args) {
         try {
-            return TextUtils.isEmpty(fmt)
-                    ? Arrays.toString(args)
-                    : null == args || args.length == 0
+            if (TextUtils.isEmpty(fmt))
+                return null == args || args.length == 0 ? "" : Arrays.toString(args);
+
+            return null == args || args.length == 0
                     ? fmt
-                    : String.format(Locale.ENGLISH, fmt, args);
+                    : String.format(defaultLocale, fmt, args);
         } catch (Exception e) {
             d(TAG, e, "Log format failed");
-            return Arrays.toString(args);
+            return "BAD FORMAT: " + fmt + " " + Arrays.toString(args);
         }
     }
 
@@ -280,7 +328,9 @@ public final class Logger {
      * @return formatted message and stack trace
      */
     public static String format(final Throwable t, final String msg) {
-        return msg + '\n' + Log.getStackTraceString(t);
+        return TextUtils.isEmpty(msg)
+                ? Log.getStackTraceString(t)
+                : msg + '\n' + Log.getStackTraceString(t);
     }
 
     // ********** Privates, Helpers, and Utility methods **********//
