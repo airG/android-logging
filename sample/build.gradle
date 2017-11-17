@@ -29,9 +29,11 @@ android {
 }
 
 dependencies {
-    compile project (':logger')
+    implementation project (':logger')
 
-    compile "com.jakewharton:butterknife:$BUTTERKNIFE_VERSION"
+    implementation "com.jakewharton:butterknife:$BUTTERKNIFE_VERSION"
     annotationProcessor "com.jakewharton:butterknife-compiler:$BUTTERKNIFE_VERSION"
-    annotationProcessor 'org.projectlombok:lombok:1.16.10'
+
+    compileOnly "org.projectlombok:lombok:$LOMBOK_VERSION"
+    annotationProcessor "org.projectlombok:lombok:$LOMBOK_VERSION"
 }

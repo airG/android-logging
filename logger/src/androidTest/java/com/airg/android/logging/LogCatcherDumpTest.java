@@ -22,6 +22,7 @@ import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -41,7 +42,12 @@ import static org.junit.Assert.assertTrue;
 @RunWith(AndroidJUnit4.class)
 public class LogCatcherDumpTest {
 
-    private final String TAG = "DUMP";
+    private static final String TAG = "DUMP";
+
+    @BeforeClass
+    public static void showMyPID () {
+        Logger.i(TAG, "my pid: %d", android.os.Process.myPid());
+    }
 
     @Before
     public void clearLog() {
@@ -72,14 +78,13 @@ public class LogCatcherDumpTest {
         Log.w(TAG, wExpected);
         Log.e(TAG, eExpected);
 
-        final AtomicBoolean lock = new AtomicBoolean(false);
         final AtomicInteger errorCount = new AtomicInteger(0);
         final List<String> lines = new ArrayList<>();
 
         LogCatcher.OnLogLinesListener listener = new LogCatcher.OnLogLinesListener() {
             @Override
             public void onLogLine(final String logLine) {
-                synchronized (lock) {
+                synchronized (lines) {
                     lines.add(logLine);
                 }
             }
@@ -91,28 +96,20 @@ public class LogCatcherDumpTest {
 
             @Override
             public void onFinished() {
-                synchronized (lock) {
-                    lock.set(true);
-                    lock.notifyAll();
-                }
+                // meh
             }
 
             @Override
             public void onError(Throwable t) {
                 errorCount.incrementAndGet();
-                onFinished();
             }
         };
 
-        new LogCatcher(false, self).dump(listener);
+        final LogCatcher catcher = new LogCatcher(false, self);
+        catcher.dump(listener);
 
         // now wait for it to finish
-
-        synchronized (lock) {
-            while (!lock.get()) {
-                lock.wait();
-            }
-        }
+        catcher.waitForCaptureEnd();
 
         final String unExpected = "This one came later";
         Log.d(TAG, unExpected);

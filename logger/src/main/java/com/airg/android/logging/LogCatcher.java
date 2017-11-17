@@ -21,6 +21,7 @@ package com.airg.android.logging;
 import android.support.annotation.Nullable;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,6 +53,7 @@ public final class LogCatcher {
 
     private static final int PID_NONE = -1;
 
+    private final Executor taskExecutor;
     private final Executor callbackExecutor;
     private final int pid;
 
@@ -60,7 +62,7 @@ public final class LogCatcher {
     private volatile boolean capturing = false;
 
     private volatile Process captureProcess = null;
-    private LogReader captureTask = null;
+    private volatile LogReader captureTask = null;
 
     /**
      * Constructor. Allows the caller to specify whether to clear the log, the process id, and an executor for background tasks.
@@ -71,7 +73,7 @@ public final class LogCatcher {
      */
     public LogCatcher(final boolean clear, final int processId, @Nullable final Executor executor) {
         pid = processId;
-
+        taskExecutor = Executors.newFixedThreadPool(2);
         callbackExecutor = null == executor
                 ? Executors.newSingleThreadExecutor()
                 : executor;
@@ -132,7 +134,7 @@ public final class LogCatcher {
 
             DEBUG("dump: dumping...");
             capturing = true;
-            callbackExecutor.execute(new LogReader(listener, true));
+            taskExecutor.execute(new LogReader(listener, true));
         }
     }
 
@@ -148,28 +150,10 @@ public final class LogCatcher {
 
             waitForClearEnd();
             capturing = true;
-            final InternalLogLinesListener logcatListener = new InternalLogLinesListener(listener) {
-                @Override
-                public void onProcessStarted(final Process process) {
-                    synchronized (lock) {
-                        captureProcess = process;
-                        lock.notifyAll();
-                    }
-                }
-
-                @Override
-                public void onProcessFinished(int exitCode) {
-                    synchronized (lock) {
-                        capturing = false;
-                        captureProcess = null;
-                        lock.notifyAll();
-                    }
-                }
-            };
 
             DEBUG("capture: capturing...");
-            captureTask = new LogReader(logcatListener, false);
-            callbackExecutor.execute(captureTask);
+            captureTask = new LogReader(listener, false);
+            taskExecutor.execute(captureTask);
         }
     }
 
@@ -187,7 +171,7 @@ public final class LogCatcher {
     }
 
     /**
-     * Best effort log eraser. No instance needed.
+     * Best effort log eraser. Blocks calling thread. No instance needed.
      */
     public static void clearLog() {
         DEBUG("clear");
@@ -206,7 +190,7 @@ public final class LogCatcher {
             clearing = true;
 
             DEBUG("clear: clearing...");
-            callbackExecutor.execute(new LogEraser() {
+            taskExecutor.execute(new LogEraser() {
                 @Override
                 protected void onComplete(int exitCode) {
                     synchronized (lock) {
@@ -258,15 +242,13 @@ public final class LogCatcher {
 
     private class LogReader implements Runnable {
 
-        private final OnLogLinesListener listener;
+        private final ProxyOnLogLinesListener listener;
         private final boolean dump;
 
-        private Process logcatProcess = null;
-
-        private final AtomicBoolean stopped = new AtomicBoolean(false);
+        private final AtomicBoolean stop = new AtomicBoolean(false);
 
         private LogReader(final OnLogLinesListener logLinesListener, final boolean dumpOnly) {
-            listener = logLinesListener;
+            listener = new ProxyOnLogLinesListener(callbackExecutor, logLinesListener);
             dump = dumpOnly;
         }
 
@@ -288,52 +270,77 @@ public final class LogCatcher {
             DEBUG("reader: starting logcat process with params: %s", commandline.toString());
 
             try {
-                logcatProcess = new ProcessBuilder(commandline).start();
+                captureProcess = new ProcessBuilder(commandline).start();
                 DEBUG("reader: Started logcat.");
 
                 listener.onStart();
 
-                final InternalLogLinesListener processListner = (listener instanceof InternalLogLinesListener)
-                        ? (InternalLogLinesListener) listener
-                        : null;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            final BufferedReader logcat = new BufferedReader(new InputStreamReader(captureProcess.getInputStream()));
 
-                if (null != processListner)
-                    processListner.onProcessStarted(logcatProcess);
+                            String line;
 
-                final BufferedReader logcat = new BufferedReader(new InputStreamReader(logcatProcess.getInputStream()));
+                            while ((line = logcat.readLine()) != null) {
 
-                String line;
+                                final String finalLine = line;
+                                callbackExecutor.execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        listener.onLogLine(finalLine);
+                                    }
+                                });
 
-                while ((line = logcat.readLine()) != null) {
-                    listener.onLogLine(line);
+                                if (stop.get()) {
+                                    DEBUG("reader: Stop requested. killing logcat.");
+                                    captureProcess.destroy();
+                                    break;
+                                }
+                            }
 
-                    if (stopped.get()) {
-                        DEBUG("reader: Stop requested. killing logcat.");
-                        logcatProcess.destroy();
-                        break;
+                            DEBUG("reader: No more lines.");
+                            logcat.close();
+                        } catch (final IOException e) {
+                            callbackExecutor.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    listener.onError(e);
+                                }
+                            });
+                        }
+
+                        callbackExecutor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                listener.onFinished();
+                            }
+                        });
                     }
-                }
+                }).start();
 
-                DEBUG("reader: No more lines.");
-                logcat.close();
-                listener.onFinished();
-
-                if (null != processListner) {
-                    logcatProcess.destroy();
-                    processListner.onProcessFinished(logcatProcess.waitFor());
-                }
-
-                logcatProcess = null;
+                final int exitCode = captureProcess.waitFor();
+                DEBUG("reader: logcat process finished with %d", exitCode);
             } catch (Exception e) {
-                if (stopped.get()) {
+                if (Thread.interrupted()) {
                     captureProcess.destroy();
                     listener.onFinished();
                 } else listener.onError(e);
+            } finally {
+                synchronized (lock) {
+                    captureProcess = null;
+                    capturing = false;
+                    DEBUG("reader: complete");
+                    lock.notifyAll();
+                }
             }
         }
 
         public void stop() {
-            stopped.set(true);
+            synchronized (lock) {
+                stop.set(true);
+            }
         }
     }
 
@@ -366,6 +373,7 @@ public final class LogCatcher {
     public interface OnLogLinesListener {
         /**
          * A new line was read from the log
+         *
          * @param logLine log line
          */
         void onLogLine(final String logLine);
@@ -378,52 +386,71 @@ public final class LogCatcher {
         /**
          * Capture finished.
          * <ul>
-         *     <li>If the capture was started via {@link LogCatcher#dump(OnLogLinesListener)}, this method indicates that the end of stream was reached.</li>
-         *     <li>If the capture was started via {@link LogCatcher#startCapture(OnLogLinesListener)}, this method indicates that {@link LogCatcher#endCapture()} was called.</li>
+         * <li>If the capture was started via {@link LogCatcher#dump(OnLogLinesListener)}, this method indicates that the end of stream was reached.</li>
+         * <li>If the capture was started via {@link LogCatcher#startCapture(OnLogLinesListener)}, this method indicates that {@link LogCatcher#endCapture()} was called.</li>
          * </ul>
          */
         void onFinished();
 
         /**
          * Error encountered
+         *
          * @param t caught error either during the execution of the <code>logcat</code> command or while trying to read from the log stream.
          */
         void onError(final Throwable t);
     }
 
-    private static abstract class InternalLogLinesListener implements OnLogLinesListener {
-        private final OnLogLinesListener listener;
+    private static class ProxyOnLogLinesListener implements OnLogLinesListener {
+        private final Executor executor;
+        private final OnLogLinesListener delegate;
 
-        protected InternalLogLinesListener(final OnLogLinesListener delegate) {
-            listener = delegate;
+        private ProxyOnLogLinesListener(final Executor e, final OnLogLinesListener d) {
+            executor = e;
+            delegate = d;
         }
 
         @Override
-        public final void onError(Throwable t) {
-            listener.onError(t);
+        public void onLogLine(final String logLine) {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    delegate.onLogLine(logLine);
+                }
+            });
         }
 
         @Override
         public void onStart() {
-            listener.onStart();
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    delegate.onStart();
+                }
+            });
         }
 
         @Override
-        public final void onFinished() {
-            listener.onFinished();
+        public void onFinished() {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    delegate.onFinished();
+                }
+            });
         }
 
         @Override
-        public final void onLogLine(String logLine) {
-            listener.onLogLine(logLine);
+        public void onError(final Throwable t) {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    delegate.onError(t);
+                }
+            });
         }
-
-        abstract void onProcessStarted(final Process process);
-
-        abstract void onProcessFinished(final int exitCode);
     }
 
-    private static void DEBUG (final String fmt, final Object... args) {
+    private static void DEBUG(final String fmt, final Object... args) {
         if (!BuildConfig.DEBUG) return;
         Logger.d("LOG:CATCHER", fmt, args);
     }

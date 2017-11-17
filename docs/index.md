@@ -1,4 +1,3 @@
- [![Build Status](https://travis-ci.org/airG/android-logging.svg?branch=master)](https://travis-ci.org/airG/android-logging)
  [![Download](https://api.bintray.com/packages/airgoss/airGOss/logger/images/download.svg) ](https://bintray.com/airgoss/airGOss/logger/_latestVersion)
 
 # Android Logging
